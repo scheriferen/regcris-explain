@@ -9,10 +9,15 @@ export async function login(username: string, password: string) {
     .eq('is_active', true)
     .single()
 
+  console.log('data:', data)
+  console.log('error:', error)
+
   if (error || !data) throw new Error('Invalid username or password')
 
   const match = await bcrypt.compare(password, data.password)
+  console.log('password match:', match)
+
   if (!match) throw new Error('Invalid username or password')
 
-  return data // has role, is_active, etc.
+  return data
 }
