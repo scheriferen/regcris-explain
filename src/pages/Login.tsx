@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { login } from "../lib/auth";
+import { useAuth } from "../lib/AuthContext";
 
 // ── Login styles ──────────────────────────────────────────────────────────────
 
@@ -35,11 +37,6 @@ function Input({ label, value, onChange, type = "text", placeholder = "" }: {
   );
 }
 
-// ── Hardcoded admin credentials ───────────────────────────────────────────────
-
-const ADMIN_USERNAME = "ADMIN";
-const ADMIN_PASSWORD = "Regcris5678";
-
 // ── Login Screen ──────────────────────────────────────────────────────────────
 
 export default function Login() {
@@ -47,12 +44,21 @@ export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
+  const [loading, setLoading]   = useState(false);
+  const { setCurrentUser } = useAuth();
 
-  function handleLogin() {
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      navigate("/admin");
-    } else {
-      setError("Incorrect username or password.");
+  async function handleLogin() {
+    setError("");
+    setLoading(true);
+    try {
+      const user = await login(username, password);
+      setCurrentUser({ id: user.id, username: user.username, role: user.role });
+      if (user.role === "admin") navigate("/admin");
+      else navigate("/language");
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -91,11 +97,11 @@ export default function Login() {
             <p style={{ color: "#ffd6d6", fontSize: 12, margin: "0 0 12px", textAlign: "center" }}>{error}</p>
           )}
 
-          <button onClick={handleLogin} style={{
+          <button onClick={handleLogin} disabled={loading} style={{
             width: "100%", padding: "12px 0", background: "#ff7700", border: "none",
             borderRadius: 8, color: "#fff", fontWeight: 700, fontSize: 15,
-            cursor: "pointer", boxShadow: "0 2px 8px #ff770055",
-          }}>Log in</button>
+            cursor: "pointer", boxShadow: "0 2px 8px #ff770055", opacity: loading ? 0.7 : 1,
+          }}>{loading ? "Logging in..." : "Log in"}</button>
         </div>
       </div>
     </>

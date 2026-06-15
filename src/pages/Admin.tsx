@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../lib/AuthContext";
+import { fetchAccounts, createAccount, updateAccount, setActive, terminateAccount, clearTerminated } from "../lib/accounts";
+
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -9,11 +12,11 @@ type ConfirmKind = "activate" | "deactivate" | "terminate" | "clear-all";
 interface User {
   id: string;
   username: string;
-  password: string;
+  role: string;
   active: boolean;
   terminated: boolean;
   createdAt: string;
-  terminatedAt?: string;
+  terminatedAt?: string | null;
 }
 
 interface ConfirmState {
@@ -21,17 +24,6 @@ interface ConfirmState {
   userId?: string;
   username?: string;
 }
-
-// ── Seed data ─────────────────────────────────────────────────────────────────
-
-const INITIAL_USERS: User[] = [
-  { id: "1", username: "jdelacruz", password: "pass1234", active: true,  terminated: false, createdAt: "2026-05-10" },
-  { id: "2", username: "mreyes",    password: "pass5678", active: false, terminated: false, createdAt: "2026-05-18" },
-  { id: "3", username: "asantos",   password: "passabcd", active: true,  terminated: false, createdAt: "2026-06-01" },
-  { id: "4", username: "bcruz",     password: "passxyz1", active: false, terminated: true,  createdAt: "2026-04-12", terminatedAt: "2026-05-30" },
-];
-
-const INITIAL_ADMIN = { username: "admin", password: "admin123" };
 
 // ── Dashboard styles ──────────────────────────────────────────────────────────
 
@@ -129,10 +121,12 @@ const ghostBtn: React.CSSProperties = {
   borderRadius: 6, padding: "5px 12px", fontWeight: 600, fontSize: 12,
   cursor: "pointer", whiteSpace: "nowrap",
 };
-const tBtn = (color: string): React.CSSProperties => ({
-  background: `${color}18`, color, border: `1px solid ${color}44`,
+const tBtn = (color: string, disabled = false): React.CSSProperties => ({
+  background: disabled ? "#f0f0f0" : `${color}18`,
+  color: disabled ? "#bbb" : color,
+  border: disabled ? "1px solid #e5e5e5" : `1px solid ${color}44`,
   borderRadius: 6, padding: "5px 11px", fontWeight: 600, fontSize: 12,
-  cursor: "pointer", whiteSpace: "nowrap",
+  cursor: disabled ? "not-allowed" : "pointer", whiteSpace: "nowrap",
 });
 
 // ── Input ─────────────────────────────────────────────────────────────────────
@@ -216,24 +210,31 @@ function ConfirmDialog({ state, onConfirm, onCancel }: {
 
 // ── Row action buttons ────────────────────────────────────────────────────────
 
-function UserActions({ user, onEdit, onConfirmRequest }: {
-  user: User; onEdit: () => void; onConfirmRequest: (k: ConfirmKind) => void;
+function UserActions({ user, isSelf, onEdit, onConfirmRequest }: {
+  user: User; isSelf: boolean; onEdit: () => void; onConfirmRequest: (k: ConfirmKind) => void;
 }) {
   return (
     <div className="action-cell">
       <button onClick={onEdit} style={tBtn("#cc0000")}>Edit</button>
-      <button onClick={() => onConfirmRequest(user.active ? "deactivate" : "activate")} style={tBtn(user.active ? "#d97706" : "#16a34a")}>
+      <button
+        onClick={() => onConfirmRequest(user.active ? "deactivate" : "activate")}
+        style={tBtn(user.active ? "#d97706" : "#16a34a", isSelf)}
+        disabled={isSelf}
+      >
         {user.active ? "Deactivate" : "Activate"}
       </button>
-      <button onClick={() => onConfirmRequest("terminate")} style={tBtn("#dc2626")}>Terminate</button>
+      <button onClick={() => onConfirmRequest("terminate")} style={tBtn("#dc2626", isSelf)} disabled={isSelf}>
+        Terminate
+      </button>
+      {isSelf && <span style={{ fontSize: 11, color: "#999", alignSelf: "center" }}>(You)</span>}
     </div>
   );
 }
 
 // ── Mobile cards ──────────────────────────────────────────────────────────────
 
-function MobileUserCard({ user, onEdit, onConfirmRequest }: {
-  user: User; onEdit: () => void; onConfirmRequest: (k: ConfirmKind) => void;
+function MobileUserCard({ user, isSelf, onEdit, onConfirmRequest }: {
+  user: User; isSelf: boolean; onEdit: () => void; onConfirmRequest: (k: ConfirmKind) => void;
 }) {
   return (
     <div style={{ background: "#fff", borderRadius: 12, padding: 16, marginBottom: 10, boxShadow: "0 1px 4px #0001" }}>
@@ -246,10 +247,17 @@ function MobileUserCard({ user, onEdit, onConfirmRequest }: {
       </div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         <button onClick={onEdit} style={tBtn("#cc0000")}>Edit</button>
-        <button onClick={() => onConfirmRequest(user.active ? "deactivate" : "activate")} style={tBtn(user.active ? "#d97706" : "#16a34a")}>
+        <button
+          onClick={() => onConfirmRequest(user.active ? "deactivate" : "activate")}
+          style={tBtn(user.active ? "#d97706" : "#16a34a", isSelf)}
+          disabled={isSelf}
+        >
           {user.active ? "Deactivate" : "Activate"}
         </button>
-        <button onClick={() => onConfirmRequest("terminate")} style={tBtn("#dc2626")}>Terminate</button>
+        <button onClick={() => onConfirmRequest("terminate")} style={tBtn("#dc2626", isSelf)} disabled={isSelf}>
+          Terminate
+        </button>
+        {isSelf && <span style={{ fontSize: 11, color: "#999", alignSelf: "center" }}>(You)</span>}
       </div>
     </div>
   );
@@ -300,7 +308,10 @@ function EditUserModal({ user, onSave, onClose }: {
       <Input label="New Password" value={password} onChange={setPassword} type="password" placeholder="Leave blank to keep current" />
       {error && <p style={{ color: "#dc2626", fontSize: 12, margin: "0 0 12px" }}>{error}</p>}
       <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={() => { if (!username.trim()) { setError("Username cannot be empty."); return; } onSave(user.id, username.trim(), password || user.password); }} style={primaryBtn}>Save Changes</button>
+        <button onClick={() => {
+            if (!username.trim()) { setError("Username cannot be empty."); return; }
+              onSave(user.id, username.trim(), password); // empty password = "keep current", handled in updateAccount
+            }} style={primaryBtn}>Save Changes</button>
         <button onClick={onClose} style={secondaryBtn}>Cancel</button>
       </div>
     </Overlay>
@@ -352,14 +363,30 @@ type Modal = "edit-user" | "create-user" | "edit-admin" | null;
 
 export default function Admin() {
   const navigate = useNavigate();
+  const { currentUser, setCurrentUser } = useAuth();
 
-  const [users,         setUsers]         = useState<User[]>(INITIAL_USERS);
-  const [adminUsername, setAdminUsername] = useState(INITIAL_ADMIN.username);
-  const [adminPassword, setAdminPassword] = useState(INITIAL_ADMIN.password);
-  const [tab,           setTab]           = useState<Tab>("active");
-  const [modal,         setModal]         = useState<Modal>(null);
-  const [editingUser,   setEditingUser]   = useState<User | null>(null);
-  const [confirm,       setConfirm]       = useState<ConfirmState | null>(null);
+  const [users, setUsers]   = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab]       = useState<Tab>("active");
+  const [modal, setModal]   = useState<Modal>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+
+  async function loadUsers() {
+    const data = await fetchAccounts();
+    setUsers(data.map(a => ({
+      id: a.id,
+      username: a.username,
+      role: a.role,
+      active: a.is_active,
+      terminated: a.terminated,
+      createdAt: a.created_at,
+      terminatedAt: a.terminated_at ?? undefined,
+    })));
+    setLoading(false);
+  }
+
+  useEffect(() => { loadUsers(); }, []);
 
   const activeUsers     = users.filter(u => !u.terminated);
   const terminatedUsers = users.filter(u => u.terminated);
@@ -370,45 +397,58 @@ export default function Admin() {
     setConfirm({ kind, userId: user?.id, username: user?.username });
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
     if (!confirm) return;
-    const { kind, userId } = confirm;
-    if (kind === "clear-all") {
-      setUsers(prev => prev.filter(u => !u.terminated));
-    } else {
-      const today = new Date().toISOString().split("T")[0];
-      setUsers(prev => prev.map(u => {
-        if (u.id !== userId) return u;
-        if (kind === "activate")   return { ...u, active: true };
-        if (kind === "deactivate") return { ...u, active: false };
-        if (kind === "terminate")  return { ...u, terminated: true, active: false, terminatedAt: today };
-        return u;
-      }));
+    try {
+      const { kind, userId } = confirm;
+      if (kind === "clear-all") await clearTerminated();
+      else if (userId) {
+        if (kind === "activate")   await setActive(userId, true);
+        if (kind === "deactivate") await setActive(userId, false);
+        if (kind === "terminate")  await terminateAccount(userId);
+      }
+      await loadUsers();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setConfirm(null);
     }
-    setConfirm(null);
   }
 
-  function saveUser(id: string, username: string, password: string) {
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, username, password } : u));
-    setModal(null);
+  async function saveUser(id: string, username: string, password: string) {
+    try {
+      await updateAccount(id, username, password);
+      await loadUsers();
+      setModal(null);
+    } catch (err: any) {
+      alert(err.message);
+    }
   }
 
-  function createUser(username: string, password: string) {
-    setUsers(prev => [...prev, {
-      id: Date.now().toString(), username, password,
-      active: true, terminated: false,
-      createdAt: new Date().toISOString().split("T")[0],
-    }]);
-    setModal(null);
+  async function createUser(username: string, password: string) {
+    try {
+      await createAccount(username, password);
+      await loadUsers();
+      setModal(null);
+    } catch (err: any) {
+      alert(err.message);
+    }
   }
 
-  function saveAdmin(username: string, password: string) {
-    setAdminUsername(username);
-    if (password) setAdminPassword(password);
-    setModal(null);
+  async function saveAdmin(username: string, password: string) {
+    if (!currentUser) return;
+    try {
+      await updateAccount(currentUser.id, username, password);
+      setCurrentUser({ ...currentUser, username });
+      await loadUsers();
+      setModal(null);
+    } catch (err: any) {
+      alert(err.message);
+    }
   }
 
   function handleLogout() {
+    setCurrentUser(null);
     navigate("/");
   }
 
@@ -426,7 +466,7 @@ export default function Admin() {
             <span style={{ color: "#fff", fontWeight: 700, fontSize: 15 }}>User Management</span>
           </div>
           <div className="nav-right">
-            <span className="nav-admin-label">Admin: <strong>{adminUsername}</strong></span>
+            <span className="nav-admin-label">Admin: <strong>{currentUser?.username}</strong></span>
             <button onClick={() => setModal("edit-admin")} style={ghostBtn}>Edit Profile</button>
             <button onClick={handleLogout} style={ghostBtn}>Log out</button>
           </div>
@@ -481,15 +521,28 @@ export default function Admin() {
                         <td style={{ fontWeight: 600, color: "#222", fontSize: 14 }}>{u.username}</td>
                         <td style={{ color: "#888", fontSize: 13 }}>{u.createdAt}</td>
                         <td><StatusBadge user={u} /></td>
-                        <td><UserActions user={u} onEdit={() => { setEditingUser(u); setModal("edit-user"); }} onConfirmRequest={k => requestConfirm(k, u)} /></td>
+                        <td>
+                            <UserActions
+                                user={u}
+                                isSelf={u.id === currentUser?.id}
+                                onEdit={() => { setEditingUser(u); setModal("edit-user"); }}
+                                onConfirmRequest={k => requestConfirm(k, u)}
+                            />
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 <div className="mobile-cards">
                   {activeUsers.map(u => (
-                    <MobileUserCard key={u.id} user={u} onEdit={() => { setEditingUser(u); setModal("edit-user"); }} onConfirmRequest={k => requestConfirm(k, u)} />
-                  ))}
+                    <MobileUserCard
+                        key={u.id}
+                        user={u}
+                        isSelf={u.id === currentUser?.id}
+                        onEdit={() => { setEditingUser(u); setModal("edit-user"); }}
+                        onConfirmRequest={k => requestConfirm(k, u)}
+                    />
+                    ))}
                 </div>
                 {activeUsers.length === 0 && <div style={{ padding: 48, textAlign: "center", color: "#bbb", fontSize: 14 }}>No active accounts yet. Create one to get started.</div>}
               </>
@@ -532,7 +585,7 @@ export default function Admin() {
       {/* Modals */}
       {modal === "edit-user"   && editingUser && <EditUserModal  user={editingUser} onSave={saveUser}  onClose={() => setModal(null)} />}
       {modal === "create-user" && <CreateUserModal onSave={createUser} onClose={() => setModal(null)} />}
-      {modal === "edit-admin"  && <EditAdminModal  adminUsername={adminUsername} onSave={saveAdmin} onClose={() => setModal(null)} />}
+      {modal === "edit-admin" && currentUser && (<EditAdminModal adminUsername={currentUser.username} onSave={saveAdmin} onClose={() => setModal(null)} />)}
       {confirm && <ConfirmDialog state={confirm} onConfirm={handleConfirm} onCancel={() => setConfirm(null)} />}
     </>
   );
