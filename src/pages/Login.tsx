@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../lib/auth'
+import { useAuth } from '../lib/AuthContext'
 import { FaUser, FaLock } from 'react-icons/fa'
 
 export default function Login() {
@@ -9,12 +10,14 @@ export default function Login() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
+  const { setCurrentUser } = useAuth()
 
   async function handleLogin() {
     setLoading(true)
     setError('')
     try {
       const user = await login(username, password)
+      setCurrentUser({ id: user.id, username: user.username, role: user.role })
       if (user.role === 'admin') navigate('/admin')
       else navigate('/language')
     } catch (e: any) {
@@ -175,7 +178,7 @@ export default function Login() {
           <h1 className="notice-title">NOTICE TO EXPLAIN GENERATOR</h1>
           <h2 className="login-subtitle">USER LOGIN</h2>
           
-          <div className="input-group">
+          <div className="input-group" onKeyDown={e => e.key === 'Enter' && handleLogin()}>
             
             {/* WRAPPED USERNAME INPUT */}
             <div className="input-wrapper">
