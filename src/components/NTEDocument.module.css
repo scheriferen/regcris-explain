@@ -1,0 +1,198 @@
+.document {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 12pt;
+  color: #111;
+  background: #fff;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.letterhead {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.letterheadLeft {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.companyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.companyName {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #863bff;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+
+.companyTagline {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 10px;
+  color: #888;
+}
+
+.docType {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: #555;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.headerDivider {
+  height: 2px;
+  background: linear-gradient(to right, #863bff, #cc0000);
+  margin-bottom: 24px;
+  border-radius: 2px;
+  display: block;
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+.fieldKey {
+  font-family: 'Times New Roman', Times, serif;
+  font-weight: 700;
+  font-size: 12pt;
+  min-width: 64px;
+  flex-shrink: 0;
+}
+
+.fieldColon {
+  font-weight: 700;
+  padding: 0 10px;
+  flex-shrink: 0;
+}
+
+.fieldValue {
+  font-size: 12pt;
+  flex: 1;
+}
+
+.divider {
+  height: 1px;
+  background: #999;
+  margin: 6px 0 22px 0;
+  display: block;
+}
+
+.body {
+  margin-bottom: 40px;
+}
+
+.para {
+  margin: 0 0 16px 0;
+  text-align: justify;
+  text-indent: 2.5em;
+  line-height: 1.75;
+  font-size: 12pt;
+}
+
+.paraPlaceholder {
+  text-align: center;
+  line-height: 1.7;
+  font-size: 11pt;
+  color: #bbb;
+  font-style: italic;
+  padding: 32px 16px;
+  border: 1.5px dashed #ddd;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.signatures {
+  margin-top: 36px;
+}
+
+.sigRight {
+  text-align: right;
+  margin-bottom: 32px;
+}
+
+.sigLabel {
+  font-size: 11pt;
+  margin: 0;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.sigRow {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 40px;
+}
+
+.sigBlock {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sigLine {
+  height: 1px;
+  background: #111;
+  width: 200px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.sigName {
+  font-size: 10pt;
+  font-weight: 700;
+  margin: 0;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.sigTitle {
+  font-size: 9pt;
+  color: #333;
+  margin: 0;
+  line-height: 1.5;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.sigDateRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sigDateLabel {
+  font-size: 10pt;
+  white-space: nowrap;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+.sigDateLine {
+  flex: 1;
+  height: 1px;
+  background: #111;
+  max-width: 150px;
+  display: block;
+}

@@ -4,6 +4,7 @@ import ProtectedRoute from './components/routing'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
 import NTEFormPage from './pages/NTEFormPage'
+import NTEPreviewPage from './pages/NTEPreviewPage'
 
 function App() {
   return (
@@ -21,6 +22,12 @@ function App() {
           <Route path="/nte-form" element={
             <ProtectedRoute requiredRole="supervisor">
               <NTEFormPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/preview" element={
+            <ProtectedRoute requiredRole="supervisor">
+              <NTEPreviewPage />
             </ProtectedRoute>
           } />
 
