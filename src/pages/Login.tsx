@@ -175,7 +175,7 @@ export default function Login() {
         <div className="login-card">
           <img src="regcrisbanner.png" alt="Regcris Banner" className="card-banner" />
           
-          <h1 className="notice-title">NOTICE TO EXPLAIN GENERATOR</h1>
+          <h1 className="notice-title">NOTICE TO EXPLAIN</h1>
           <h2 className="login-subtitle">USER LOGIN</h2>
           
           <div className="input-group" onKeyDown={e => e.key === 'Enter' && handleLogin()}>
