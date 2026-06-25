@@ -43,20 +43,156 @@
   font-size: 15px;
 }
 
-.topbarBack {
-  background: transparent;
-  color: #fff;
-  border: 1px solid #fff4;
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ── Language toggle ── */
+.langToggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff2;
   border-radius: 6px;
-  padding: 5px 14px;
-  font-weight: 600;
+  padding: 3px 8px;
+}
+
+.langBtn {
+  background: transparent;
+  color: #ffffffcc;
+  border: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.langBtn:hover {
+  color: #fff;
+}
+
+.langBtnActive {
+  color: #fff !important;
+  background: #fff3;
+}
+
+.langDivider {
+  color: #ffffff55;
   font-size: 12px;
+  user-select: none;
+}
+
+/* ── User menu ── */
+.userMenu {
+  position: relative;
+}
+
+.userMenuBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border: 1px solid #fff4;
+  border-radius: 8px;
+  padding: 5px 10px;
+  color: #fff;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.topbarBack:hover {
+.userMenuBtn:hover {
   background: #fff2;
+}
+
+.userIcon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 10px;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+/* ── Dropdown panel ── */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 180px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px #0003;
+  overflow: hidden;
+  z-index: 100;
+}
+
+.dropdownHeader {
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dropdownUsername {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+}
+
+.dropdownRole {
+  font-size: 11px;
+  color: #999;
+  text-transform: capitalize;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: #f0f0f0;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #cc0000;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+}
+
+.dropdownItem:hover {
+  background: #fff0f0;
+}
+
+.dropdownItemIcon {
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
 .pageContent {

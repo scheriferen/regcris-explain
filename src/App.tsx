@@ -3,7 +3,6 @@ import { AuthProvider } from './lib/AuthContext'
 import ProtectedRoute from './components/routing'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
-import LanguageSelect from './pages/LanguageSelect'
 import NTEFormPage from './pages/NTEFormPage'
 
 function App() {
@@ -18,13 +17,6 @@ function App() {
               <Admin />
             </ProtectedRoute>
           } />
-
-          <Route path="/language" element={
-            <ProtectedRoute requiredRole="coordinator">
-              <LanguageSelect />
-            </ProtectedRoute>
-          } />
-
 
           <Route path="/nte-form" element={
             <ProtectedRoute requiredRole="coordinator">

@@ -19,7 +19,7 @@ export default function Login() {
       const user = await login(username, password)
       setCurrentUser({ id: user.id, username: user.username, role: user.role })
       if (user.role === 'admin') navigate('/admin')
-      else navigate('/language')
+      else navigate('/nte-form')
     } catch (e: any) {
       setError(e.message)
     } finally {
