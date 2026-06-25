@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext'
+
+import ProtectedRoute from './components/routing'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
 import LanguageSelect from './pages/LanguageSelect'
@@ -10,9 +12,20 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/language" element={<LanguageSelect />} />
-          <Route path="*" element={<div>404 - page not found</div>} />
+
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <Admin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/language" element={
+            <ProtectedRoute requiredRole="coordinator">
+              <LanguageSelect />
+            </ProtectedRoute>
+          } />
+
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
