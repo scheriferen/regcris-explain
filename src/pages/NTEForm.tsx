@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Language, NTEFormData } from '../types/nte.types';
 import {
   INITIAL_FORM_DATA,
@@ -8,17 +9,37 @@ import {
 } from '../types/nte.types';
 import NameRow from '../components/NameRow';
 import styles from '../components/NTEForm.module.css';
+import { useAuth } from '../lib/AuthContext';
+import { FaUserCircle, FaChevronDown, FaSignOutAlt } from 'react-icons/fa';
 
 interface NTEFormProps {
   language: Language;
-  onBack: () => void;
+  onLanguageChange: (lang: Language) => void;
   onPreview: (data: NTEFormData) => void;
 }
 
-export default function NTEForm({ language, onBack, onPreview }: NTEFormProps) {
+export default function NTEForm({ language, onLanguageChange, onPreview }: NTEFormProps) {
   const [form, setForm] = useState<NTEFormData>({ ...INITIAL_FORM_DATA });
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { currentUser, setCurrentUser } = useAuth();
+  const navigate = useNavigate();
   const L = LANG_CONFIG[language];
-  console.log ('language:', language, 'placeholders', L.namePlaceholders);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function handleLogout() {
+    setCurrentUser(null);
+    navigate('/');
+  }
 
   const set =
     <K extends keyof NTEFormData>(field: K) =>
@@ -38,9 +59,60 @@ export default function NTEForm({ language, onBack, onPreview }: NTEFormProps) {
           <div className={styles.topbarLogo}><span>regcris</span></div>
           <span className={styles.topbarTitle}>Notice to Explain</span>
         </div>
-        <button type="button" className={styles.topbarBack} onClick={onBack}>
-          ← Back
-        </button>
+
+        <div className={styles.topbarRight}>
+
+          {/* Language toggle */}
+          <div className={styles.langToggle}>
+            <button
+              type="button"
+              className={`${styles.langBtn} ${language === 'eng' ? styles.langBtnActive : ''}`}
+              onClick={() => onLanguageChange('eng')}
+            >
+              ENG
+            </button>
+            <span className={styles.langDivider}>|</span>
+            <button
+              type="button"
+              className={`${styles.langBtn} ${language === 'tag' ? styles.langBtnActive : ''}`}
+              onClick={() => onLanguageChange('tag')}
+            >
+              TAG
+            </button>
+          </div>
+
+          {/* User profile dropdown */}
+          <div className={styles.userMenu} ref={dropdownRef}>
+            <button
+              type="button"
+              className={styles.userMenuBtn}
+              onClick={() => setDropdownOpen((o) => !o)}
+            >
+              <FaUserCircle className={styles.userIcon} />
+              <span className={styles.userName}>{currentUser?.username ?? 'User'}</span>
+              <FaChevronDown className={`${styles.chevron} ${dropdownOpen ? styles.chevronOpen : ''}`} />
+            </button>
+
+            {dropdownOpen && (
+              <div className={styles.dropdown}>
+                <div className={styles.dropdownHeader}>
+                  <span className={styles.dropdownUsername}>{currentUser?.username}</span>
+                  <span className={styles.dropdownRole}>{currentUser?.role}</span>
+                </div>
+                <div className={styles.dropdownDivider} />
+                <button
+                  type="button"
+                  className={styles.dropdownItem}
+                  onClick={handleLogout}
+                >
+                  <FaSignOutAlt className={styles.dropdownItemIcon} />
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+
+        </div>
       </div>
 
       <div className={styles.pageContent}>
@@ -151,7 +223,6 @@ export default function NTEForm({ language, onBack, onPreview }: NTEFormProps) {
             <div className={styles.divider} />
 
             <div className={styles.formActions}>
-              <button type="button" className={styles.cancelBtn} onClick={onBack}>Cancel</button>
               <button type="submit" className={styles.submitBtn}>Preview Document →</button>
             </div>
 
