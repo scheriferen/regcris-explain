@@ -241,6 +241,7 @@ function MobileUserCard({ user, isSelf, onEdit, onConfirmRequest }: {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
         <div>
           <div style={{ fontWeight: 700, fontSize: 15, color: "#111" }}>{user.username}</div>
+          <div style={{ fontSize: 12, color: "#cc0000", marginTop: 2, fontWeight: 600, textTransform: "capitalize" }}>{user.role}</div>
           <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>Created {user.createdAt}</div>
         </div>
         <StatusBadge user={user} />
@@ -319,18 +320,34 @@ function EditUserModal({ user, onSave, onClose }: {
 }
 
 function CreateUserModal({ onSave, onClose }: {
-  onSave: (u: string, p: string) => void; onClose: () => void;
+  onSave: (u: string, p: string, role: 'supervisor' | 'admin') => void; onClose: () => void;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole]         = useState<'supervisor' | 'admin'>("supervisor");
   const [error, setError]       = useState("");
   return (
     <Overlay onClose={onClose} title="Create Account">
       <Input label="Username" value={username} onChange={setUsername} placeholder="Enter username" />
       <Input label="Password" value={password} onChange={setPassword} type="password" placeholder="Enter password" />
+      <div style={{ marginBottom: 16 }}>
+        <label style={{ display: "block", fontSize: 12, fontWeight: 600, marginBottom: 6, letterSpacing: ".05em", textTransform: "uppercase", color: "#444" }}>Role</label>
+        <select
+          value={role}
+          onChange={e => setRole(e.target.value as 'supervisor' | 'admin')}
+          style={{ width: "100%", padding: "10px 14px", borderRadius: 8, border: "1px solid #e5e5e5", fontSize: 14, background: "#fafafa", color: "#111", outline: "none" }}
+        >
+          <option value="supervisor">Supervisor</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
       {error && <p style={{ color: "#dc2626", fontSize: 12, margin: "0 0 12px" }}>{error}</p>}
       <div style={{ display: "flex", gap: 10 }}>
-        <button onClick={() => { if (!username.trim()) { setError("Username is required."); return; } if (!password.trim()) { setError("Password is required."); return; } onSave(username.trim(), password.trim()); }} style={primaryBtn}>Create Account</button>
+        <button onClick={() => {
+          if (!username.trim()) { setError("Username is required."); return; }
+          if (!password.trim()) { setError("Password is required."); return; }
+          onSave(username.trim(), password.trim(), role);
+        }} style={primaryBtn}>Create Account</button>
         <button onClick={onClose} style={secondaryBtn}>Cancel</button>
       </div>
     </Overlay>
@@ -425,9 +442,9 @@ export default function Admin() {
     }
   }
 
-  async function createUser(username: string, password: string) {
+  async function createUser(username: string, password: string, role: 'supervisor' | 'admin') {
     try {
-      await createAccount(username, password);
+      await createAccount(username, password, role);
       await loadUsers();
       setModal(null);
     } catch (err: any) {
@@ -514,11 +531,12 @@ export default function Admin() {
                   </div>
                 </div>
                 <table className="user-table">
-                  <thead><tr>{["Username", "Created", "Status", "Actions"].map(h => <th key={h}>{h}</th>)}</tr></thead>
+                  <thead><tr>{["Username", "Role", "Created", "Status", "Actions"].map(h => <th key={h}>{h}</th>)}</tr></thead>
                   <tbody>
                     {activeUsers.map(u => (
                       <tr key={u.id}>
                         <td style={{ fontWeight: 600, color: "#222", fontSize: 14 }}>{u.username}</td>
+                        <td style={{ color: "#888", fontSize: 13, textTransform: "capitalize" }}>{u.role}</td>
                         <td style={{ color: "#888", fontSize: 13 }}>{u.createdAt}</td>
                         <td><StatusBadge user={u} /></td>
                         <td>

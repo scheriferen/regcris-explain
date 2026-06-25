@@ -20,14 +20,14 @@ function App() {
           } />
 
           <Route path="/language" element={
-            <ProtectedRoute requiredRole="coordinator">
+            <ProtectedRoute requiredRole="supervisor">
               <LanguageSelect />
             </ProtectedRoute>
           } />
 
 
           <Route path="/nte-form" element={
-            <ProtectedRoute requiredRole="coordinator">
+            <ProtectedRoute requiredRole="supervisor">
               <NTEFormPage />
             </ProtectedRoute>
           } />

@@ -21,11 +21,11 @@ export async function fetchAccounts(): Promise<Account[]> {
   return data as Account[]
 }
 
-export async function createAccount(username: string, password: string) {
+export async function createAccount(username: string, password: string, role: 'supervisor' | 'admin' = 'supervisor') {
   const hashed = await bcrypt.hash(password, 10)
   const { error } = await supabase
     .from('accounts')
-    .insert({ username, password: hashed, role: 'coordinator', is_active: true })
+    .insert({ username, password: hashed, role, is_active: true })
   if (error) throw error
 }
 
