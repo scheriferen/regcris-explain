@@ -4,6 +4,7 @@ import ProtectedRoute from './components/routing'
 import Login from './pages/Login'
 import Admin from './pages/Admin'
 import LanguageSelect from './pages/LanguageSelect'
+import NTEFormPage from './pages/NTEFormPage'
 
 function App() {
   return (
@@ -21,6 +22,13 @@ function App() {
           <Route path="/language" element={
             <ProtectedRoute requiredRole="coordinator">
               <LanguageSelect />
+            </ProtectedRoute>
+          } />
+
+
+          <Route path="/nte-form" element={
+            <ProtectedRoute requiredRole="coordinator">
+              <NTEFormPage />
             </ProtectedRoute>
           } />
 
